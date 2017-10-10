@@ -1,4 +1,3 @@
-require 'rack/contrib'
 require 'middleman-core'
 require 'middleman-core/load_paths'
 
@@ -200,6 +199,8 @@ module Middleman
         path = nil
       end
 
+      # require 'rack/contrib'
+      require 'middleman-apps/rack_contrib'
       ::Rack::Builder.new do
         use ::Rack::TryStatic, urls: ['/'], root: root,
                                try: ['.html', 'index.html', '/index.html']

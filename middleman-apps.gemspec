@@ -18,10 +18,11 @@ Gem::Specification.new do |s|
     File.basename(f)
   end
 
-  s.add_runtime_dependency('middleman-cli')
-  s.add_runtime_dependency('middleman-core', ['>= 4.2.1'])
-  s.add_runtime_dependency('sinatra')
-  s.add_runtime_dependency('activesupport')
-  s.add_runtime_dependency('rack-contrib', ['>= 1.7.0'])
-  s.add_runtime_dependency('pry')
+  s.add_runtime_dependency('middleman-core', ['~> 4.2'])
+  s.add_runtime_dependency('sinatra', ['~> 2.0'])
+  s.add_runtime_dependency('activesupport', ['>= 4.2'])
+  # s.add_runtime_dependency('rack-contrib', ['>= 1.7.0'])
+
+  s.add_development_dependency('pry')
+  s.add_development_dependency('middleman-cli')
 end

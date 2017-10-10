@@ -4,6 +4,14 @@
 generator that allows you to run truly dynamic pages within your static
 site using Rack-compatible (e.g. Sinatra) based child apps.
 
+You can create dynamic pages using this extension. Maybe you want to:
+
+- Create simple APIs that can be consumed by your static app via AJAX
+- Showcase Code snippets alongside your blog.
+- Provide simple Demos of a tech writeup, etc.
+- Display a dynamic Gallery of your most recent timeline from Flickr?
+- ... suggest one? ...
+
 The best way to get started with this extension is to have a look at the
 various `features` in the test suite. There is a test for each feature
 that exists for extension, such as:
@@ -20,17 +28,9 @@ that exists for extension, such as:
 - Optionally, inherit from `Middleman::Apps::BaseApp` for helper methods
   and added goodies for your apps.
 
-There are various child apps that are well suited for a Middleman website, e.g.:
-
-- Simple APIs that can be consumed by the static app via AJAX
-- Showcase of Code snippets alongside your blog.
-- Simple Demos of a tech writeup, etc.
-- Display a dynamic Gallery of your most recent timeline from Flickr?
-- ... suggest one? ...
-
 ### Example
 
-You can, e.g. create a simple JSON API endpoint at: `/api/base64-api/`
+You can, e.g. create a simple JSON API endpoint at: `/base64-api/`
 by creating a file named `apps/base64_api.rb` with:
 
 ```ruby
@@ -51,12 +51,12 @@ class Base64Api < Sinatra::Base
 end
 ```
 
-Now, visit: `/base64-api/encode/somestring` on your middleman site, and
-voila! It just works!
+Run/Build your Middleman site now, and visit: 
+`/base64-api/encode/somestring`. Voila! It just works!
 
-Not just this, a `config.ru` is generated for you, so that you can keep
-using these dynamic pages/endpoints using `rackup`. Try running `rackup`,
-and visiting the above endpoint on that server instance.
+A `config.ru` is, also, generated for you, so that you can keep
+using these dynamic pages/endpoints using `rackup`. Try running 
+`rackup`, and visiting the above endpoint on that server instance.
 
 ## Installation
 
@@ -182,4 +182,4 @@ or exploit the bug you are submitting.
 Copyright (c) 2018 Nikhil Gupta. MIT Licensed, see [LICENSE] for details.
 
 [middleman]: http://middlemanapp.com
-[LICENSE]: https://github.com/nikhgupta/middleman-apps/blob/master/LICENSE
+[LICENSE]: https://github.com/nikhgupta/middleman-apps/blob/master/LICENSE.txt
