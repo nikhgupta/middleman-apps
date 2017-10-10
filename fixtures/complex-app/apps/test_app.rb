@@ -2,7 +2,7 @@ require 'sinatra'
 
 module ComplexApp
   module SomeNamespace
-    # Test application fixture
+    # Child app that is used by option: namespace
     class TestApp < Sinatra::Base
       get '/' do
         params[:test] ? 'pass' : 'fail'

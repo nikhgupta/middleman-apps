@@ -33,11 +33,12 @@ Feature: Real world JSON API example
     Given a fixture app "complex-app"
       And app is running with config:
           """
-          activate :apps, map: { awesome_api: "OtherNamespace::AwesomeAPI" }
+          activate :apps, namespace: :complex_app,
+            map: { child_app: "/some-other-path/abcd" }
           """
-    When I go to "/awesome-api/ping"
+    When I go to "/some-other-path/abcd"
     Then the status code should be "200"
-    And  I should see "pong"
+    And  I should see "hello"
 
   Scenario: Allows specifying URL path for application
     Given a fixture app "complex-app"
@@ -46,12 +47,10 @@ Feature: Real world JSON API example
           activate :apps,
             namespace: 'complex_app/some_namespace',
             map: {
-              test_app: {
-                url: 'test'
-              },
+              test_app: 'test',
               awesome_api: {
                 url: 'api',
-                namespace: "OtherNamespace::AwesomeAPI"
+                class: "OtherNamespace::AwesomeAPI"
               }
             }
           """

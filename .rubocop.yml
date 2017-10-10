@@ -2,6 +2,10 @@ Naming/FileName:
   Exclude:
     - 'lib/middleman-apps.rb'
 
+Metrics/ClassLength:
+  Exclude:
+    - 'lib/middleman-apps/extension.rb'
+
 Style/Documentation:
   Exclude:
     - 'spec/**/*'

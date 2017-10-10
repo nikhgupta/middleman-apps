@@ -3,13 +3,11 @@ Given(/app is running(?: with config:)?/) do |*args|
   step %(I run `middleman build --verbose`)
   step %(was successfully built)
 
-  # FIXME: Causes test-suite to fail when run with all tests
-  #        MM_ROOT env var is set when switched to directory,
-  #        which causes tests to fail.
-  #        Not sure, how else to build the rack app with properly loaded
-  #        libraries, without CDing into the path.
   app = nil
-  Dir.chdir(File.expand_path(expand_path('.'))) do
+  path = File.expand_path(expand_path('.'))
+  ENV['MM_ROOT'] = path
+
+  Dir.chdir(path) do
     app, = Rack::Builder.parse_file('config.ru')
   end
 
