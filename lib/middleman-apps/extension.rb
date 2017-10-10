@@ -2,6 +2,7 @@ require 'rack/contrib'
 require 'middleman-core'
 
 module Middleman
+  # Middleman extension to load dynamic/modular pages/apps for Middleman.
   class Apps < Extension
     option :not_found, '404.html', 'Path to 404 error page'
 
@@ -11,11 +12,12 @@ module Middleman
         Middleman.setup_load_paths
 
         ::Middleman::Application.new do
-          config[:environment] = (ENV['MM_ENV'] || ENV['RACK_ENV'] || 'development').to_sym
           config[:mode] = :config
           config[:exit_before_ready] = true
           config[:watcher_disable] = true
           config[:disable_sitemap] = true
+          config[:environment] = (ENV['MM_ENV'] ||
+                                  ENV['RACK_ENV'] || 'development').to_sym
         end
       end
 

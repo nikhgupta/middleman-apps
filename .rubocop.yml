@@ -1,0 +1,9 @@
+Naming/FileName:
+  Exclude:
+    - 'lib/middleman-apps.rb'
+
+Style/Documentation:
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
+

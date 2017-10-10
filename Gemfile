@@ -12,8 +12,8 @@ group :development do
 end
 
 group :test do
+  gem 'aruba'
   gem 'capybara'
   gem 'cucumber'
-  gem 'aruba'
   gem 'rspec'
 end
