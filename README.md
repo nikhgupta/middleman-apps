@@ -1,4 +1,4 @@
-## Middleman Apps
+## Middleman Apps [![Build](https://api.travis-ci.org/nikhgupta/middleman-apps.svg?branch=master)](https://travis-ci.org/nikhgupta/middleman-apps)
 
 `middleman-apps` is an extension for the [Middleman] static site
 generator that allows you to run truly dynamic pages within your static
