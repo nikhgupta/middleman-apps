@@ -1,3 +1,5 @@
+require 'sinatra'
+
 # Test application fixture
 class TestApp < Sinatra::Base
   get '/' do

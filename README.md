@@ -4,6 +4,32 @@
 generator that allows you to run truly dynamic pages within your static
 site using Sinatra based modular apps.
 
+You can, e.g. create a simple JSON API endpoint at: `/api/base64-api/` by
+creating a file named `apps/base64_api.rb` with:
+
+```ruby
+# config.rb
+...
+activate :apps
+...
+
+# apps/base64.rb
+module AnyNamespace
+  class Base64Api < Sinatra::Base
+    get '/decode/:str' do
+      Base64.decode64(params['str'])
+    end
+    get '/encode/:str' do
+      Base64.encode64(params['str'])
+    end
+  end
+end
+```
+
+Now, visit: `/base64/encode/somestring` on your middleman site, and
+enjoy the API. Not just this, a `config.ru` is generated for you, so
+that you can keep using these dynamic pages/endpoints using `rackup`.
+
 ## Installation
 
 If you're just getting started, install the `middleman` gem and generate

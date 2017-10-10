@@ -1,3 +1,0 @@
-ENV['RACK_ENV'] = 'production'
-require 'middleman-apps'
-run Middleman::Apps.rack_app
