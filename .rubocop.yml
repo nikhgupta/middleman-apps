@@ -1,15 +1,11 @@
 AllCops:
   Exclude:
-    - 'lib/middleman-apps/rack_contrib.rb'
+    - 'lib/middleman/apps/rack_contrib.rb'
     - 'tmp/aruba'
-
-Naming/FileName:
-  Exclude:
-    - 'lib/middleman-apps.rb'
 
 Metrics/ClassLength:
   Exclude:
-    - 'lib/middleman-apps/extension.rb'
+    - 'lib/middleman/apps/extension.rb'
 
 Style/Documentation:
   Exclude:

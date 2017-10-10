@@ -1,13 +1,13 @@
 require 'sinatra'
 
 module Middleman
-  class Apps
+  module Apps
     # Base application class for creating child applications.
     #
     # Inheriting from this class should provide better syncronization with the
     # static middleman app.
     #
-    class BaseApp < Sinatra::Base
+    class Base < ::Sinatra::Base
       # set :static, true
 
       # set :mm_root, File.dirname(File.dirname(__FILE__))

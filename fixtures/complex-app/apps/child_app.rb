@@ -1,4 +1,4 @@
-require 'middleman-apps/base_app'
+require 'middleman/apps/base'
 
 module ComplexApp
   # Child app that inherits from Middleman::Apps::BaseApp (which in turn
@@ -7,7 +7,7 @@ module ComplexApp
   # - views and public folders set appropriately
   # - handly helper methods, etc.
   #
-  class ChildApp < ::Middleman::Apps::BaseApp
+  class ChildApp < ::Middleman::Apps::Base
     get '/' do
       'hello'
     end

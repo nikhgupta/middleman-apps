@@ -1,9 +1,9 @@
-
 $LOAD_PATH.push File.expand_path('../lib', __FILE__)
+require 'middleman/apps/version'
 
 Gem::Specification.new do |s|
   s.name        = 'middleman-apps'
-  s.version     = '0.0.1'
+  s.version     = Middleman::Apps::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ['Nikhil Gupta']
   s.email       = ['me@nikhgupta.com']
@@ -23,6 +23,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency('activesupport', ['>= 4.2'])
   # s.add_runtime_dependency('rack-contrib', ['>= 1.7.0'])
 
-  s.add_development_dependency('pry')
   s.add_development_dependency('middleman-cli')
 end
