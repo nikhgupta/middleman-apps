@@ -11,7 +11,6 @@ module Middleman
     # Usage examples can be seen in README for this extension.
     #
     class Extension < ::Middleman::Extension
-
       # @!group Options for Extension
 
       # @!macro [attach] option
@@ -22,6 +21,8 @@ module Middleman
       option :namespace, nil, 'Namespace for the child apps'
       option :map, {}, 'Mappings for differently named child apps'
       option :verbose, false, 'Displays list of child apps that were ignored'
+      option :app_dir, ENV['MM_APPS_DIR'] || 'apps',
+             'The directory child apps are stored in'
 
       # @!endgroup
 
@@ -29,6 +30,45 @@ module Middleman
         super
         # useful for converting file names to ruby classes
         require 'active_support/core_ext/string/inflections'
+      end
+
+      # Run `after_configuration` hook passed on by MM
+      #
+      # After configuration for middleman has been finalized,
+      # create a `config.ru` in the root directory, and mount all child
+      # apps, if we are on a preview server.
+      #
+      # @return [nil]
+      #
+      # @private
+      # @api private
+      #
+      def after_configuration
+        create_config_ru
+        return unless app.server?
+
+        # Make sure it exists, or `listen` will explode.
+        app_path = File.expand_path(options[:app_dir], app.root)
+        ::FileUtils.mkdir_p(app_path)
+        # watch apps dir for reloading in development mode
+        app.files.watch :reload, path: app_path, only: /\.rb$/
+
+        mount_child_apps(app)
+      end
+
+      # Get a Rack::App that can serve the MM app's build directory.
+      #
+      # Directory paths, and 404 error page are deduced from extensions'
+      # options.
+      #
+      # @return [Rack::App] Rack::TryStatic app for MM app's build directory.
+      #
+      def middleman_static_app
+        not_found = options.not_found
+        return create_static_app(root) unless not_found
+
+        not_found_path = File.join(build_dir, find_resource(not_found))
+        create_static_app build_dir, not_found_path
       end
 
       # Mount all child apps on a specific Rack app (or current app)
@@ -56,6 +96,7 @@ module Middleman
       #
       def child_apps
         apps_list.map do |mapp|
+          $LOADED_FEATURES.delete(mapp)
           require mapp
           klass = get_application_class_for(mapp)
           warn "Ignored child app: #{mapp}" unless klass
@@ -63,44 +104,13 @@ module Middleman
         end.compact.to_h
       end
 
-      # Get a Rack::App that can serve the MM app's build directory.
-      #
-      # Directory paths, and 404 error page are deduced from extensions' options.
-      #
-      # @return [Rack::App] Rack::TryStatic app for MM app's build directory.
-      #
-      def middleman_static_app
-        not_found = options.not_found
-        return create_static_app(root) unless not_found
-
-        not_found_path = File.join(build_dir, find_resource(not_found))
-        create_static_app build_dir, not_found_path
-      end
-
-      # Get a list of all child apps that are found in `MM_ROOT/apps` directory.
+      # Get a list of all child apps that are found in `app_dir` directory.
       #
       def apps_list
-        pattern = File.join(app.root, 'apps', '*.rb')
+        pattern = File.join(app.root, options[:app_dir], '*.rb')
         Dir[pattern].map do |file|
           File.realpath(file) if File.file?(file)
         end.compact
-      end
-
-      # Run `after_configuration` hook passed on by MM
-      #
-      # After configuration for middleman has been finalized,
-      # create a `config.ru` in the root directory, and mount all child
-      # apps, if we are on a preview server.
-      #
-      # @return [nil]
-      #
-      # @private
-      # @api private
-      #
-      def after_configuration
-        create_config_ru
-        return unless app.server?
-        mount_child_apps(app)
       end
 
       # Create a `config.ru` file, if one does not exist, yet.
@@ -118,7 +128,7 @@ module Middleman
         return if File.exist?(path)
 
         content = <<-CONTENT.gsub(/^ {6}/, '')
-        ENV['RACK_ENV'] = 'production'
+        ENV['RACK_ENV'] ||= 'production'
         require 'middleman/apps'
         run Middleman::Apps.rack_app
         CONTENT
@@ -147,7 +157,7 @@ module Middleman
         require 'middleman/apps/rack_contrib'
         ::Rack::Builder.new do
           use ::Rack::TryStatic, urls: ['/'], root: root,
-            try: ['.html', 'index.html', '/index.html']
+                                 try: ['.html', 'index.html', '/index.html']
           run ::Rack::NotFound.new(path)
         end
       end

@@ -43,10 +43,11 @@ module Middleman
     #
     # @see .rack_app `.rack_app` method which uses this internally
     #
-    def self.within_extension(&block)
-      app = middleman_app
+    def self.within_extension(app = nil, &block)
+      app ||= middleman_app
       options = app.extensions[:apps].options.to_h
-      Middleman::Apps::Extension.new(app, options).instance_eval(&block)
+      ext = Middleman::Apps::Extension.new(app, options)
+      block ? ext.instance_eval(&block) : ext
     end
 
     # Rack app comprising of the static (middleman) app with 404 pages, and
@@ -58,6 +59,7 @@ module Middleman
     # @return [Rack::App] rack application configuration
     def self.rack_app
       within_extension do
+        # create_config_ru
         mount_child_apps(middleman_static_app)
       end
     end

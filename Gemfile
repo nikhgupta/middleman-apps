@@ -6,6 +6,7 @@ source 'https://rubygems.org'
 gemspec
 
 group :development do
+  gem 'pry'
   gem 'rake'
   gem 'rdoc'
   gem 'yard'
@@ -16,4 +17,5 @@ group :test do
   gem 'capybara'
   gem 'cucumber'
   gem 'rspec'
+  gem 'capybara-mechanize'
 end

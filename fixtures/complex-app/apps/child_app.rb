@@ -9,7 +9,19 @@ module ComplexApp
   #
   class ChildApp < ::Middleman::Apps::Base
     get '/' do
-      'hello'
+      "hello #{named} world"
+    end
+
+    get '/test' do
+      middleman_layout :test
+    end
+
+    get '/page' do
+      middleman_layout :page, locals: { str: 'testing..' }
+    end
+
+    def named
+      'my'
     end
   end
 end
