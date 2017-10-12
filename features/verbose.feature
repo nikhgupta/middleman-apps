@@ -7,7 +7,7 @@ Feature: Verbose mode
           activate :apps, verbose: true
           """
       And I run `middleman build --verbose`
-      And the aruba exit timeout is 2 seconds
+      And the aruba exit timeout is 4 seconds
       And I run `rackup -p 17283` in background
      Then the output should match:
           """

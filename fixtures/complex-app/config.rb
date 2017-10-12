@@ -1,1 +1,1 @@
-activate :apps
+activate :apps, namespace: :complex_app

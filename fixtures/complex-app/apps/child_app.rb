@@ -16,8 +16,9 @@ module ComplexApp
       middleman_layout :test
     end
 
-    get '/page' do
-      middleman_layout :page, locals: { str: 'testing..' }
+    get '/page/:str' do
+      str = params[:str] || 'testing..'
+      middleman_layout :page, locals: { str: str }
     end
 
     def named

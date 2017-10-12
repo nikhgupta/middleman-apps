@@ -18,4 +18,5 @@ group :test do
   gem 'capybara-mechanize'
   gem 'cucumber'
   gem 'rspec'
+  gem 'redcarpet', '~> 3.3', '>= 3.3.3'
 end

@@ -48,6 +48,8 @@ module Middleman
       app ||= middleman_app
       options = app.extensions[:apps].options.to_h
       ext = Middleman::Apps::Extension.new(app, options)
+      app.sitemap.register_resource_list_manipulator(:child_apps, ext.app_list)
+      app.sitemap.ensure_resource_list_updated!
       block ? ext.app_list.instance_eval(&block) : ext.app_list
     end
 
@@ -60,6 +62,16 @@ module Middleman
     # @return [Rack::App] rack application configuration
     def self.rack_app
       with_app_list { mount_child_apps(middleman_static_app) }
+    end
+
+    # Find App Resource for the given class name
+    #
+    # @param [Class] klass - klass to search
+    # @return [Middleman::Sitemap::AppResource, nil] - found app resource if any
+    def self.find_app_resource_for(klass)
+      with_app_list do
+        apps_list.detect { |child_app| child_app.klass == klass }
+      end
     end
 
     # Get content for the not found page as specified in options.

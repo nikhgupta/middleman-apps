@@ -30,15 +30,15 @@ Feature: Child apps inherited from Middleman::Apps::Base
     Then the status code should be "404"
     And  I should see "<h2>404 Custom Not Found!</h2>"
 
-  Scenario: Middleman layouts can be used with multiple renderers
+  Scenario: Multiple renderers are handled correctly in MM layouts
     Given a fixture app "complex-app"
       And app is running with config:
           """
           activate :apps, namespace: :complex_app
           """
     When I go to "/child-app/test"
-    Then I should see "h1 span {"
-    And  I should see "opacity: 1; }"
+    Then I should see "<h1>Heading L1</h1>"
+    And  I should see "<h2>Heading L2</h2>"
 
   Scenario: Middleman template helpers can be used
     Given a fixture app "complex-app"
@@ -46,8 +46,8 @@ Feature: Child apps inherited from Middleman::Apps::Base
           """
           activate :apps, namespace: :complex_app
           """
-    When I go to "/child-app/page"
+    When I go to "/child-app/page/somestr"
     Then I should see "<h3>rendered partial</h3>"
      And I should see "<h3>via layout</h3>"
-     And I should see "testing.."
+     And I should see "somestr"
      And I should see "<h3>via page</h3>"

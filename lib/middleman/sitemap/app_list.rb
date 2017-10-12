@@ -52,7 +52,7 @@ module Middleman
         source = get_source_file(path, @app_dir, :app)
 
         AppResource.new(@sitemap, url, source).tap do |p|
-          p.add_metadata locals: { 'url' => url, 'class' => klass }
+          p.add_metadata locals: { url: url, klass: klass }
         end
       end
 
@@ -173,7 +173,7 @@ module Middleman
         name = path.basename('.rb').to_s
         url  = mappings[name]
         url  = url[:url] if url.is_a?(Hash)
-        return '/' + name.to_s.titleize.parameterize unless url
+        return name.to_s.titleize.parameterize unless url
         url.to_s.gsub(%r{^\/}, '')
       end
 

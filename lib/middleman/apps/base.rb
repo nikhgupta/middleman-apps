@@ -38,6 +38,7 @@ module Middleman
         set :public_folder, -> { File.join(settings.mm_app.root, 'build') }
       end
 
+      # set :show_exceptions, false
       configure :development do
         register Sinatra::Reloader
         set :show_exceptions, true
@@ -53,10 +54,12 @@ module Middleman
 
       # Render a MM layout with the given name.
       #
-      def middleman_layout(name, options = {})
-        options = { locals: {} }.merge(options)
-        context = Class.new(Middleman::TemplateContext).new(settings.mm_app)
-        context.render :middleman, "layouts/#{name}", options
+      def middleman_layout(name, opts = {})
+        locs = opts.delete(:locals) || {}
+        opts[:layout] ||= name
+
+        res = Middleman::Apps.find_app_resource_for(self.class)
+        res.render(opts, locs)
       end
     end
   end

@@ -52,10 +52,12 @@ module Middleman
       #
       def after_configuration
         create_config_ru
+        return if app.build?
+
+        app.sitemap.register_resource_list_manipulator(:child_apps, @app_list)
         return unless app.server?
 
         watch_child_apps
-        app.sitemap.register_resource_list_manipulator(:child_apps, @app_list)
         @app_list.mount_child_apps(app)
       end
 
