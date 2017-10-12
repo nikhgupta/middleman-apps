@@ -11,6 +11,8 @@ module Middleman
     # Usage examples can be seen in README for this extension.
     #
     class Extension < ::Middleman::Extension
+      attr_reader :app_list
+
       # @!group Options for Extension
 
       # @!macro [attach] option
@@ -30,6 +32,11 @@ module Middleman
         super
         # useful for converting file names to ruby classes
         require 'active_support/core_ext/string/inflections'
+        require 'middleman/sitemap/app_resource'
+        require 'middleman/sitemap/app_list'
+
+        # get a reference to all the apps
+        @app_list = Sitemap::AppList.new(app, self, options)
       end
 
       # Run `after_configuration` hook passed on by MM
@@ -47,70 +54,21 @@ module Middleman
         create_config_ru
         return unless app.server?
 
+        watch_child_apps
+        app.sitemap.register_resource_list_manipulator(:child_apps, @app_list)
+        @app_list.mount_child_apps(app)
+      end
+
+      # Set a watcher to reload MM when files change in the directory for the
+      # child apps.
+      #
+      # @return [nil]
+      #
+      def watch_child_apps
         # Make sure it exists, or `listen` will explode.
-        app_path = File.expand_path(options[:app_dir], app.root)
+        app_path = File.expand_path(options.app_dir, app.root)
         ::FileUtils.mkdir_p(app_path)
-        # watch apps dir for reloading in development mode
         app.files.watch :reload, path: app_path, only: /\.rb$/
-
-        mount_child_apps(app)
-      end
-
-      # Get a Rack::App that can serve the MM app's build directory.
-      #
-      # Directory paths, and 404 error page are deduced from extensions'
-      # options.
-      #
-      # @return [Rack::App] Rack::TryStatic app for MM app's build directory.
-      #
-      def middleman_static_app
-        not_found = options.not_found
-        return create_static_app(root) unless not_found
-
-        not_found_path = File.join(build_dir, find_resource(not_found))
-        create_static_app build_dir, not_found_path
-      end
-
-      # Mount all child apps on a specific Rack app (or current app)
-      #
-      # @param [Rack::App] rack_app app on which to mount child apps
-      #                             Default: app from MM configuration
-      #
-      # @return [Rack::App] rack_app with child apps mounted on top
-      #
-      def mount_child_apps(rack_app = nil)
-        rack_app ||= app
-        child_apps.each do |url, klass|
-          rack_app.map(url) { run klass }
-        end
-        rack_app
-      end
-
-      # Get a hash of all child applications URLs paths matched to corresponding
-      # Ruby classes.
-      #
-      # Warning is raised (if `verbose` option is `true`) when a child app was
-      # found, but could not be mapped due to the specified config.
-      #
-      # @return [Hash] - child application URL vs Ruby class
-      #
-      def child_apps
-        apps_list.map do |mapp|
-          $LOADED_FEATURES.delete(mapp)
-          require mapp
-          klass = get_application_class_for(mapp)
-          warn "Ignored child app: #{mapp}" unless klass
-          [get_application_url_for(mapp), klass] if klass
-        end.compact.to_h
-      end
-
-      # Get a list of all child apps that are found in `app_dir` directory.
-      #
-      def apps_list
-        pattern = File.join(app.root, options[:app_dir], '*.rb')
-        Dir[pattern].map do |file|
-          File.realpath(file) if File.file?(file)
-        end.compact
       end
 
       # Create a `config.ru` file, if one does not exist, yet.
@@ -127,114 +85,13 @@ module Middleman
         path = File.join(app.root, 'config.ru')
         return if File.exist?(path)
 
-        content = <<-CONTENT.gsub(/^ {6}/, '')
+        content = <<-CONTENT.gsub(/^ {8}/, '')
         ENV['RACK_ENV'] ||= 'production'
         require 'middleman/apps'
         run Middleman::Apps.rack_app
         CONTENT
 
         File.open(path, 'wb') { |file| file.puts content }
-      end
-
-      # Create a Rack::TryStatic application for the given directory root.
-      #
-      # @param [String] root - path to directory root
-      # @param [String] path - path to not found error page
-      #                        If not provided, default 404 response from Rack
-      #                        is served.
-      #
-      # @return [Rack::App] static app for the `root` directory
-      #
-      # @api private
-      #
-      def create_static_app(root, path = nil)
-        unless File.exist?(path)
-          warn("Could not find: #{path}")
-          path = nil
-        end
-
-        # require 'rack/contrib'
-        require 'middleman/apps/rack_contrib'
-        ::Rack::Builder.new do
-          use ::Rack::TryStatic, urls: ['/'], root: root,
-                                 try: ['.html', 'index.html', '/index.html']
-          run ::Rack::NotFound.new(path)
-        end
-      end
-
-      # Find a resource given its path, destination path, or page_id.
-      #
-      # @param [String] name - identifier for this resource
-      # @return [String] relative path to resource
-      #
-      # @api private
-      #
-      def find_resource(name)
-        sitemap    = app.sitemap
-        resource   = sitemap.find_resource_by_path(name)
-        resource ||= sitemap.find_resource_by_destination_path(name)
-        resource ||= sitemap.find_resource_by_page_id(name)
-        resource ? resource.destination_path : name
-      end
-
-      private
-
-      # Warn user about message if `verbose` option is on.
-      #
-      # @param [String] message - message to display
-      #
-      # @private
-      # @api private
-      #
-      def warn(message)
-        logger.warn(message) if logger && options.verbose
-      end
-
-      # Get path to MM's build dir.
-      #
-      # @return [String] path to build dir
-      #
-      def build_dir
-        File.expand_path(app.config.build_dir.to_s)
-      end
-
-      # Convert options data to a hash for easy searches.
-      #
-      # @api private
-      # @return [Hash] options data
-      #
-      def mappings
-        options.map.map { |key, val| [key.to_s, val] }.to_h
-      end
-
-      # Get URL at which given child app should be mounted.
-      #
-      # @api private
-      # @param [String] file - path to child app
-      # @return [String] url component for the child app
-      #
-      def get_application_url_for(file)
-        name = File.basename(file, '.rb')
-        url  = mappings[name]
-        url  = url[:url] if url.is_a?(Hash)
-        '/' + (url ? url.to_s.gsub(%r{^\/}, '') : name.titleize.parameterize)
-      end
-
-      # Get Application Class for the child app.
-      #
-      # @api private
-      # @param [String] file - path to child app
-      # @return [Class, nil] Class for the child app, if exists.
-      #
-      def get_application_class_for(file)
-        name = File.basename(file, '.rb')
-        namespace = options.namespace
-
-        klass   = mappings[name][:class] if mappings[name].is_a?(Hash)
-        klass ||= namespace ? "#{namespace}/#{name}" : name
-        klass.to_s.classify.constantize
-      rescue NameError
-        return nil
       end
     end
   end

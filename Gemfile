@@ -15,7 +15,7 @@ end
 group :test do
   gem 'aruba'
   gem 'capybara'
+  gem 'capybara-mechanize'
   gem 'cucumber'
   gem 'rspec'
-  gem 'capybara-mechanize'
 end

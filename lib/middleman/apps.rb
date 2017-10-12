@@ -6,6 +6,7 @@ require 'middleman/apps/extension'
 # Register this extension with the name of `apps`
 Middleman::Extensions.register :apps, Middleman::Apps::Extension
 
+# Namespace for the Middleman project
 module Middleman
   # Base namespace for `middleman-apps` extension.
   #
@@ -23,7 +24,7 @@ module Middleman
 
     # Middleman app instance for reference to configuration, etc.
     #
-    # @return [Middleman::Application] an instance of {Middleman::Application}
+    # @return [Middleman::Application] an instance of Middleman::Application
     #   using configuration in {MIDDLEMAN_OPTIONS}
     #
     def self.middleman_app
@@ -43,11 +44,11 @@ module Middleman
     #
     # @see .rack_app `.rack_app` method which uses this internally
     #
-    def self.within_extension(app = nil, &block)
+    def self.with_app_list(app = nil, &block)
       app ||= middleman_app
       options = app.extensions[:apps].options.to_h
       ext = Middleman::Apps::Extension.new(app, options)
-      block ? ext.instance_eval(&block) : ext
+      block ? ext.app_list.instance_eval(&block) : ext.app_list
     end
 
     # Rack app comprising of the static (middleman) app with 404 pages, and
@@ -58,10 +59,17 @@ module Middleman
     #
     # @return [Rack::App] rack application configuration
     def self.rack_app
-      within_extension do
-        # create_config_ru
-        mount_child_apps(middleman_static_app)
+      with_app_list { mount_child_apps(middleman_static_app) }
+    end
+
+    # Get content for the not found page as specified in options.
+    #
+    def self.not_found(rack_app = nil)
+      rack_app ||= middleman_app
+      path = with_app_list(rack_app) do
+        build_dir.join(find_resource(@options.not_found))
       end
+      path.exist? ? path.read : "Not found\n"
     end
   end
 end
