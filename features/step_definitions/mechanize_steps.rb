@@ -7,7 +7,7 @@ Given(/^server is running in background$/) do
   else
     raise 'You must set @development or @production tag before using this step'
   end
-  sleep 10
+  sleep 8
 
   # TODO: match partial output from background process in aruba?
   # step %(I wait for stdout to contain "View your site at")

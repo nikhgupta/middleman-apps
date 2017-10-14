@@ -5,5 +5,9 @@ activate :apps, not_found: 'custom.html',
                   awesome_api: {
                     url: 'api',
                     class: 'OtherNamespace::AwesomeAPI'
+                  },
+                  no_namespace: {
+                    url: '/no-name',
+                    class: 'NoNamespaceApp'
                   }
                 }, verbose: true

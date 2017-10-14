@@ -3,6 +3,18 @@ module Middleman
     # Base app resource that inherits from Sitemap Resource.
     #
     class AppResource < Resource
+      def self.find_by_klass(klass, app)
+        app.sitemap.resources.detect do |res|
+          res.is_a?(self) && res.locals[:klass].name == klass.name
+        end
+      end
+
+      def self.find_by_path(path, app)
+        app.sitemap.resources.detect do |res|
+          res.is_a?(self) && res.source_file.to_s == path.to_s
+        end
+      end
+
       # Get class for this child app.
       #
       # @return [Class] class for the child app
@@ -43,9 +55,6 @@ module Middleman
         layout  = "layouts/#{opts.delete(:layout)}"
         context = @app.template_context_class.new(@app, locs, opts)
         context.render :middleman, layout, opts.merge(locals: locs)
-        # path = file_descriptor[:full_path].to_s
-        # renderer = ::Middleman::TemplateRenderer.new(@app, path)
-        # renderer.render(locs, opts)
       end
     end
   end

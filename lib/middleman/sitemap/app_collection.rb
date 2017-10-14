@@ -35,7 +35,9 @@ module Middleman
       def apps_list
         Dir[@app_dir.join('*.rb').to_s].map do |file|
           path = Pathname.new(file)
-          create_app(path) if path.file?
+          resource = create_app(path) if path.file?
+          warn "Ignored child app: #{path}" unless resource
+          resource
         end.compact
       end
 
@@ -45,13 +47,13 @@ module Middleman
       # @return [Middleman::Sitemap::AppResource] app resource
       #
       def create_app(path)
-        $LOADED_FEATURES.delete(path.to_s)
-        require path
+        reload_resource_at path
         url    = get_application_url_for(path)
         klass  = get_application_class_for(path)
+        return unless klass
+
         source = get_source_file(path, @app_dir, :app)
         title  = (klass || url).to_s.titleize
-
         AppResource.new(@sitemap, url.gsub(%r{^\/}, ''), source).tap do |p|
           p.add_metadata locals: { url: url, klass: klass, title: title }
         end
@@ -70,7 +72,6 @@ module Middleman
       def mount_child_apps(rack_app = nil)
         rack_app ||= @app
         apps_list.each do |res|
-          warn "Ignored child app: #{res.source_file}" unless res.klass
           rack_app.map(res.url) { run res.klass } if res.klass
         end
         rack_app
@@ -201,6 +202,23 @@ module Middleman
       def get_source_file(path, dir, name)
         ::Middleman::SourceFile.new(path.relative_path_from(dir),
                                     path, path.dirname.to_s, Set.new([name]), 0)
+      end
+
+      # Reload resource at a given file path
+      #
+      # @api private
+      # @param [String] path - path to the source file
+      # @return [nil]
+      #
+      def reload_resource_at(path)
+        if $LOADED_FEATURES.include?(path.to_s)
+          klass = get_application_class_for(path)
+          container = klass.to_s.deconstantize.safe_constantize || Object
+          container.send(:remove_const, klass.to_s.demodulize) if klass
+          $LOADED_FEATURES.delete(path.to_s)
+        end
+
+        require path
       end
     end
   end

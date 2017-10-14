@@ -68,11 +68,7 @@ module Middleman
     # @param [Class] klass - klass to search
     # @return [Middleman::Sitemap::AppResource, nil] - found app resource if any
     def self.find_app_resource_for(klass, app = nil)
-      app ||= middleman_app
-      app.sitemap.resources.detect do |res|
-        res.is_a?(Middleman::Sitemap::AppResource) &&
-          res.locals[:klass] == klass
-      end
+      Middleman::Sitemap::AppResource.find_by_klass(klass, app)
     end
 
     # Get content for the not found page as specified in options.

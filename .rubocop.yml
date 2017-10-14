@@ -1,7 +1,7 @@
 AllCops:
   Exclude:
     - 'lib/middleman/apps/rack_contrib.rb'
-    - 'tmp/aruba'
+    - 'tmp/aruba/**/*'
     - 'features/**/*'
 
 Metrics/ClassLength:

@@ -1,5 +1,5 @@
 Aruba.configure do |config|
-  # config.exit_timeout = 1000
+  config.activate_announcer_on_command_failure = [:stderr, :stdout, :command]
 end
 
 Before do

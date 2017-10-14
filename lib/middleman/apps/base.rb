@@ -1,5 +1,4 @@
 require 'sinatra'
-require 'sinatra/reloader'
 require 'middleman/apps'
 
 module Middleman
@@ -31,9 +30,7 @@ module Middleman
       #   Path to the directory containing our layout files.
       set :public_folder, File.join(settings.mm_app.root, 'build')
 
-      # set :show_exceptions, false
       configure :development do
-        register Sinatra::Reloader
         set :show_exceptions, true
       end
 

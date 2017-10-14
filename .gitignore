@@ -6,5 +6,6 @@
 
 /tmp
 /doc
+/.yardoc
 *.gem
 config.ru
