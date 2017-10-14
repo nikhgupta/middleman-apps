@@ -1,3 +1,4 @@
+require 'forwardable'
 require 'middleman-core'
 require 'middleman-core/load_paths'
 
@@ -11,7 +12,10 @@ module Middleman
     # Usage examples can be seen in README for this extension.
     #
     class Extension < ::Middleman::Extension
-      attr_reader :app_list
+      extend Forwardable
+      attr_reader :app_collection
+      def_delegators :@app_collection, :apps_list
+      expose_to_template :apps_list
 
       # @!group Options for Extension
 
@@ -33,10 +37,10 @@ module Middleman
         # useful for converting file names to ruby classes
         require 'active_support/core_ext/string/inflections'
         require 'middleman/sitemap/app_resource'
-        require 'middleman/sitemap/app_list'
+        require 'middleman/sitemap/app_collection'
 
         # get a reference to all the apps
-        @app_list = Sitemap::AppList.new(app, self, options)
+       @app_collection = Sitemap::AppCollection.new(app, self, options)
       end
 
       # Run `after_configuration` hook passed on by MM
@@ -54,11 +58,11 @@ module Middleman
         create_config_ru
         return if app.build?
 
-        app.sitemap.register_resource_list_manipulator(:child_apps, @app_list)
+        app.sitemap.register_resource_list_manipulator(:child_apps, @app_collection)
         return unless app.server?
 
         watch_child_apps
-        @app_list.mount_child_apps(app)
+        @app_collection.mount_child_apps(app)
       end
 
       # Set a watcher to reload MM when files change in the directory for the
@@ -70,7 +74,9 @@ module Middleman
         # Make sure it exists, or `listen` will explode.
         app_path = File.expand_path(options.app_dir, app.root)
         ::FileUtils.mkdir_p(app_path)
-        app.files.watch :reload, path: app_path, only: /\.rb$/
+        watcher = app.files.watch :reload, path: app_path, only: /\.rb$/
+        list = @app_collection
+        watcher.on_change { list.mount_child_apps(app) }
       end
 
       # Create a `config.ru` file, if one does not exist, yet.

@@ -9,7 +9,7 @@ module Middleman
     #     apps_list # => this will be returned by the block
     #   end
     #
-    class AppList
+    class AppCollection
       def initialize(app, _extension, options = {})
         @app = app
         @options = options

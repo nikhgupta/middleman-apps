@@ -29,7 +29,6 @@ module Middleman
     #
     def self.middleman_app
       Middleman.setup_load_paths
-
       ::Middleman::Application.new do
         MIDDLEMAN_OPTIONS.each do |key, val|
           config[key] = val
@@ -48,9 +47,9 @@ module Middleman
       app ||= middleman_app
       options = app.extensions[:apps].options.to_h
       ext = Middleman::Apps::Extension.new(app, options)
-      app.sitemap.register_resource_list_manipulator(:child_apps, ext.app_list)
+      app.sitemap.register_resource_list_manipulator(:child_apps, ext.app_collection)
       app.sitemap.ensure_resource_list_updated!
-      block ? ext.app_list.instance_eval(&block) : ext.app_list
+      block ? ext.app_collection.instance_eval(&block) : ext.app_collection
     end
 
     # Rack app comprising of the static (middleman) app with 404 pages, and
@@ -68,9 +67,11 @@ module Middleman
     #
     # @param [Class] klass - klass to search
     # @return [Middleman::Sitemap::AppResource, nil] - found app resource if any
-    def self.find_app_resource_for(klass)
-      with_app_list do
-        apps_list.detect { |child_app| child_app.klass == klass }
+    def self.find_app_resource_for(klass, app = nil)
+      app ||= middleman_app
+      app.sitemap.resources.detect do |res|
+        res.is_a?(Middleman::Sitemap::AppResource) &&
+          res.locals[:klass] == klass
       end
     end
 
