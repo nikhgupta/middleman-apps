@@ -1,0 +1,14 @@
+<section class="articles index">
+  <h3 class="title">Available apps:</h3>
+  <ul>
+  <% apps_list.each_with_index do |app, i| %>
+    <article>
+      <h2 class="title">
+        <%= link_to app.title, app.url %>
+      </h2>
+      <p><%= app.description %></p>
+    </article>
+  <% end %>
+</ul>
+</section>
+

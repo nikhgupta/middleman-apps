@@ -1,5 +1,5 @@
-Given(/app is running(?: with config:)?/) do |*args|
-  step %(I overwrite the file named "config.rb" with:), args[0] if args.any?
+Given(/^(?:|successfully built )?app is running(?:| at "([^\"]*)")?$/) do |*args|
+  step %(a fixture app "#{args[0]}") if args.any?
   step %(I run `middleman build --verbose`)
   step %(was successfully built)
 
@@ -11,5 +11,7 @@ Given(/app is running(?: with config:)?/) do |*args|
     app, = Rack::Builder.parse_file('config.ru')
   end
 
+  # a built app that is running is always in production mode
+  ENV['RACK_ENV'] = 'production'
   Capybara.app = app.to_app
 end

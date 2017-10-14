@@ -7,13 +7,13 @@ Given(/^server is running in background$/) do
   else
     raise 'You must set @development or @production tag before using this step'
   end
-  sleep 4
+  sleep 10
 
   # TODO: match partial output from background process in aruba?
   # step %(I wait for stdout to contain "View your site at")
 end
 
 When(/^I go to "([^\"]*)" on local server$/) do |path|
-  sleep 3 # wait to ensure path has reloaded if required
+  sleep 5 # wait to ensure path has reloaded if required
   visit "http://#{Capybara.server_host}:#{Capybara.server_port}#{path}"
 end

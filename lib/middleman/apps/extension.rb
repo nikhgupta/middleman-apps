@@ -13,8 +13,8 @@ module Middleman
     #
     class Extension < ::Middleman::Extension
       extend Forwardable
-      attr_reader :app_collection
-      def_delegators :@app_collection, :apps_list
+      attr_reader :collection
+      def_delegators :@collection, :apps_list
       expose_to_template :apps_list
 
       # @!group Options for Extension
@@ -27,6 +27,7 @@ module Middleman
       option :namespace, nil, 'Namespace for the child apps'
       option :map, {}, 'Mappings for differently named child apps'
       option :verbose, false, 'Displays list of child apps that were ignored'
+      option :mount_path, '/', 'Root mount path for child apps'
       option :app_dir, ENV['MM_APPS_DIR'] || 'apps',
              'The directory child apps are stored in'
 
@@ -40,7 +41,7 @@ module Middleman
         require 'middleman/sitemap/app_collection'
 
         # get a reference to all the apps
-       @app_collection = Sitemap::AppCollection.new(app, self, options)
+        @collection = Sitemap::AppCollection.new(app, self, options)
       end
 
       # Run `after_configuration` hook passed on by MM
@@ -58,11 +59,11 @@ module Middleman
         create_config_ru
         return if app.build?
 
-        app.sitemap.register_resource_list_manipulator(:child_apps, @app_collection)
+        app.sitemap.register_resource_list_manipulator(:child_apps, @collection)
         return unless app.server?
 
         watch_child_apps
-        @app_collection.mount_child_apps(app)
+        @collection.mount_child_apps(app)
       end
 
       # Set a watcher to reload MM when files change in the directory for the
@@ -75,7 +76,7 @@ module Middleman
         app_path = File.expand_path(options.app_dir, app.root)
         ::FileUtils.mkdir_p(app_path)
         watcher = app.files.watch :reload, path: app_path, only: /\.rb$/
-        list = @app_collection
+        list = @collection
         watcher.on_change { list.mount_child_apps(app) }
       end
 

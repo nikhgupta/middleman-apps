@@ -46,10 +46,10 @@ module Middleman
     def self.with_app_list(app = nil, &block)
       app ||= middleman_app
       options = app.extensions[:apps].options.to_h
-      ext = Middleman::Apps::Extension.new(app, options)
-      app.sitemap.register_resource_list_manipulator(:child_apps, ext.app_collection)
+      ex = Middleman::Apps::Extension.new(app, options)
+      app.sitemap.register_resource_list_manipulator(:child_apps, ex.collection)
       app.sitemap.ensure_resource_list_updated!
-      block ? ext.app_collection.instance_eval(&block) : ext.app_collection
+      block ? ex.collection.instance_eval(&block) : ex.collection
     end
 
     # Rack app comprising of the static (middleman) app with 404 pages, and

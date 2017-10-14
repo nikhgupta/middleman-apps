@@ -1,3 +1,5 @@
+# FIXME: Remove this and figure out a way to reload Capybara app?
+#
 require 'capybara/mechanize'
 require 'capybara/mechanize/cucumber'
 
@@ -28,4 +30,3 @@ Around '@mechanize' do |_scenario, block|
   Capybara.server_port = nil
   Capybara.run_server = false
 end
-

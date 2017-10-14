@@ -50,9 +50,10 @@ module Middleman
         url    = get_application_url_for(path)
         klass  = get_application_class_for(path)
         source = get_source_file(path, @app_dir, :app)
+        title  = (klass || url).to_s.titleize
 
-        AppResource.new(@sitemap, url, source).tap do |p|
-          p.add_metadata locals: { url: url, klass: klass }
+        AppResource.new(@sitemap, url.gsub(%r{^\/}, ''), source).tap do |p|
+          p.add_metadata locals: { url: url, klass: klass, title: title }
         end
       end
 
@@ -67,7 +68,7 @@ module Middleman
       # @return [Rack::App] rack_app with child apps mounted on top
       #
       def mount_child_apps(rack_app = nil)
-        rack_app ||= app
+        rack_app ||= @app
         apps_list.each do |res|
           warn "Ignored child app: #{res.source_file}" unless res.klass
           rack_app.map(res.url) { run res.klass } if res.klass
@@ -170,11 +171,11 @@ module Middleman
       # @return [String] url component for the child app
       #
       def get_application_url_for(path)
-        name = path.basename('.rb').to_s
-        url  = mappings[name]
-        url  = url[:url] if url.is_a?(Hash)
-        return name.to_s.titleize.parameterize unless url
-        url.to_s.gsub(%r{^\/}, '')
+        name  = path.basename('.rb').to_s
+        url   = mappings[name]
+        url   = url[:url] if url.is_a?(Hash)
+        url ||= name.to_s.titleize.parameterize
+        "#{@options.mount_path}/#{url}".gsub(%r{\/+}, '/')
       end
 
       # Get Application Class for the child app.
@@ -189,9 +190,7 @@ module Middleman
 
         klass   = mappings[name][:class] if mappings[name].is_a?(Hash)
         klass ||= namespace ? "#{namespace}/#{name}" : name
-        klass.to_s.classify.constantize
-      rescue NameError
-        return nil
+        klass.to_s.classify.safe_constantize
       end
 
       # Get SourceFile instance from the given path.

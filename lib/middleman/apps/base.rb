@@ -1,5 +1,6 @@
 require 'sinatra'
 require 'sinatra/reloader'
+require 'middleman/apps'
 
 module Middleman
   module Apps
@@ -13,36 +14,27 @@ module Middleman
       #   Serve static assets from #public_folder, if found
       set :static, true
 
-      # @!attribute [r] environment
-      #   Set environment for this child application via Middleman.
-      #
-      #   If `MM_ENV` is set, it is used. Otherwise, we fall back to `RACK_ENV`.
-      #   If both environment variables are not set, we set this to
-      #   `:development`
-      set :environment, Middleman::Apps::ENVIRONMENT
+      set :environment, (ENV['RACK_ENV'] || 'development').to_sym
 
       # @!attribute [r] mm_app
       #   Middleman Application instance for references to config, sitemap, etc.
       #
       #   Lazily evaluated since this is a bit costly.
       #
-      set :mm_app, -> { Middleman::Apps.middleman_app }
+      set :mm_app, Middleman::Apps.middleman_app
 
       # @!attribute [r] views
       #   Path to the directory containing our layout files.
-      set :views, -> { File.join(settings.mm_app.root, 'source', 'layouts') }
+      set :views, File.join(settings.mm_app.root, 'source', 'layouts')
 
-      configure :production do
-        # @!attribute [r] public_folder
-        #   Path to the directory containing our layout files.
-        set :public_folder, -> { File.join(settings.mm_app.root, 'build') }
-      end
+      # @!attribute [r] public_folder
+      #   Path to the directory containing our layout files.
+      set :public_folder, File.join(settings.mm_app.root, 'build')
 
       # set :show_exceptions, false
       configure :development do
         register Sinatra::Reloader
         set :show_exceptions, true
-        set :public_folder, -> { File.join(settings.mm_app.root, 'source') }
       end
 
       not_found do
@@ -50,7 +42,41 @@ module Middleman
         Middleman::Apps.not_found(settings.mm_app)
       end
 
+      def self.app_resource
+        Middleman::Apps.find_app_resource_for(self, settings.mm_app)
+      end
+
+      def self.metadata
+        res  = app_resource
+        data = res ? res.locals : {}
+        keys = %i[routes html_description]
+        data = keys.map { |key| [key, res.send(key)] }.to_h.merge(data) if res
+        Hashie::Mash.new(data)
+      rescue NameError
+        data
+      end
+
+      def self.set_metadata(key, val, overwrite: false)
+        return if !overwrite && settings.respond_to?("app_#{key}")
+        set "app_#{key}", val
+        app_resource && app_resource.update_locals(key, val)
+      end
+
+      def self.add_routes_to_metadata(*verbs)
+        verbs = %i[get post put patch delete] if verbs.empty?
+        app_routes = verbs.map do |verb|
+          (routes[verb.to_s.upcase] || []).map do |route|
+            "##{verb.to_s.upcase} #{route[0]}"
+          end
+        end.flatten
+        set_metadata :routes, app_routes, overwrite: true
+      end
+
       protected
+
+      def metadata
+        self.class.metadata
+      end
 
       # Render a MM layout with the given name.
       #
@@ -58,8 +84,8 @@ module Middleman
         locs = opts.delete(:locals) || {}
         opts[:layout] ||= name
 
-        res = Middleman::Apps.find_app_resource_for(self.class)
-        res.render(opts, locs)
+        res = self.class.app_resource
+        res.render(opts, res.locals.merge(locs))
       end
     end
   end
