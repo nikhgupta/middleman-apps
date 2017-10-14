@@ -26,12 +26,15 @@ module Middleman
       #   Path to the directory containing our layout files.
       set :views, File.join(settings.mm_app.root, 'source', 'layouts')
 
-      # @!attribute [r] public_folder
-      #   Path to the directory containing our layout files.
-      set :public_folder, File.join(settings.mm_app.root, 'build')
+      configure :production do
+        # @!attribute [r] public_folder
+        #   Path to the directory containing our layout files.
+        set :public_folder, File.join(settings.mm_app.root, 'build')
+      end
 
       configure :development do
         set :show_exceptions, true
+        set :public_folder, File.join(settings.mm_app.root, 'source')
       end
 
       not_found do

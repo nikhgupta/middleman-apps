@@ -10,4 +10,4 @@ activate :apps, not_found: 'custom.html',
                     url: '/no-name',
                     class: 'NoNamespaceApp'
                   }
-                }, verbose: true
+                }

@@ -86,7 +86,7 @@ module Middleman
       #
       def middleman_static_app
         not_found = @options.not_found
-        return create_static_app(root) unless not_found
+        return create_static_app(build_dir) unless not_found
 
         not_found_path = File.join(build_dir, find_resource(not_found))
         create_static_app build_dir, not_found_path
