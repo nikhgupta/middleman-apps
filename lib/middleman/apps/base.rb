@@ -9,9 +9,8 @@ module Middleman
     # middleman app.
     #
     class Base < ::Sinatra::Base
-      # @!attribute [r] static
-      #   Serve static assets from #public_folder, if found
-      set :static, true
+      # enable :static, :logging, :dump_errors
+      # disable :show_exceptions, :raise_errors
 
       set :environment, (ENV['RACK_ENV'] || 'development').to_sym
 
@@ -33,7 +32,7 @@ module Middleman
       end
 
       configure :development do
-        set :show_exceptions, true
+        enable :show_exceptions, :raise_errors
         set :public_folder, File.join(settings.mm_app.root, 'source')
       end
 
@@ -49,8 +48,6 @@ module Middleman
       def self.metadata
         res  = app_resource
         data = res ? res.locals : {}
-        keys = %i[routes html_description]
-        data = keys.map { |key| [key, res.send(key)] }.to_h.merge(data) if res
         Hashie::Mash.new(data)
       rescue NameError
         data
@@ -80,12 +77,12 @@ module Middleman
 
       # Render a MM layout with the given name.
       #
-      def middleman_layout(name, opts = {})
+      def middleman_layout(name, opts = {}, &block)
         locs = opts.delete(:locals) || {}
         opts[:layout] ||= name
 
         res = self.class.app_resource
-        res.render(opts, res.locals.merge(locs))
+        res.render(opts, res.locals.merge(locs), &block)
       end
     end
   end

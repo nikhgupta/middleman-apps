@@ -52,10 +52,12 @@ module Middleman
         klass  = get_application_class_for(path)
         return unless klass
 
+        title = (klass || url).to_s.titleize
+        defaults = { 'url' => url, 'klass' => klass, 'title' => title }
+        metadata = defaults.merge(klass.metadata || {})
         source = get_source_file(path, @app_dir, :app)
-        title  = (klass || url).to_s.titleize
         AppResource.new(@sitemap, url.gsub(%r{^\/}, ''), source).tap do |p|
-          p.add_metadata locals: { url: url, klass: klass, title: title }
+          p.add_metadata data: { title: metadata['title'] }, locals: metadata
         end
       end
 
@@ -191,7 +193,7 @@ module Middleman
 
         klass   = mappings[name][:class] if mappings[name].is_a?(Hash)
         klass ||= namespace ? "#{namespace}/#{name}" : name
-        klass.to_s.classify.safe_constantize
+        klass.to_s.camelize.safe_constantize
       end
 
       # Get SourceFile instance from the given path.
